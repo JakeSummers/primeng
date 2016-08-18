@@ -14,5 +14,8 @@ module.exports = {
         new webpack.optimize.CommonsChunkPlugin({
             name: ['application', 'vendor', 'polyfills']
         })
-    ]
+    ],
+    devServer: {
+        host: '0.0.0.0'
+    }
 };
