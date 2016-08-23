@@ -5,7 +5,7 @@ See [PrimeNG homepage](http://www.primefaces.org/primeng) for live showcase and 
 
 ![alt text](http://www.primefaces.org/images/primeng.png "PrimeNG")
 
-# Jake's Instructions on running:
+# Instructions on running:
 
 Based loosely on the (outdated) instrustions here: https://github.com/primefaces/primeng/wiki/Building-From-Source
 
@@ -22,12 +22,29 @@ Do these things once:
 	npm install typings --global
 	npm install webpack-dev-server --global
 
-Do these things before starting the webapp: 
+Do these things to build & start the webapp:
 
-	cd primeng
+	cd ~/reposOther/primeng
+
+	# Manual Step: 	
+	# Now update the package.json to include dependancies!
+	# The package.json on this branch has been updated.  See that!
+
+	echo "npm cache clean"
+	npm cache clean
+
+	echo "npm prune"
+	npm prune
+
+	echo "npm install"
 	npm install
+
+	echo "typings install"
 	typings install
-	npm run
+
+	echo "npm start"
+	npm start
+
 
 Then you can access it here (with status): 
 
