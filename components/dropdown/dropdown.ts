@@ -1,14 +1,15 @@
-import {NgModule,Component,ElementRef,OnInit,AfterViewInit,AfterViewChecked,DoCheck,OnDestroy,Input,Output,Renderer,EventEmitter,ContentChild,TemplateRef,IterableDiffers,forwardRef,Provider} from '@angular/core';
+import {NgModule,Component,ElementRef,OnInit,AfterViewInit,AfterViewChecked,DoCheck,OnDestroy,Input,Output,Renderer,EventEmitter,ContentChild,TemplateRef,IterableDiffers,forwardRef} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {SelectItem} from '../common/api';
 import {SharedModule} from '../common/shared';
 import {DomHandler} from '../dom/domhandler';
 import {NG_VALUE_ACCESSOR, ControlValueAccessor} from '@angular/forms';
 
-const DROPDOWN_VALUE_ACCESSOR: Provider = new Provider(NG_VALUE_ACCESSOR, {
-    useExisting: forwardRef(() => Dropdown),
-    multi: true
-});
+export const DROPDOWN_VALUE_ACCESSOR: any = {
+  provide: NG_VALUE_ACCESSOR,
+  useExisting: forwardRef(() => Dropdown),
+  multi: true
+};
 
 @Component({
     selector: 'p-dropdown',
@@ -72,6 +73,8 @@ export class Dropdown implements OnInit,AfterViewInit,AfterViewChecked,DoCheck,O
     @Input() required: boolean;
     
     @Input() editable: boolean;
+    
+    @Input() appendTo: any;
     
     @ContentChild(TemplateRef) itemTemplate: TemplateRef<any>;
 
@@ -147,6 +150,13 @@ export class Dropdown implements OnInit,AfterViewInit,AfterViewChecked,DoCheck,O
         
         this.updateDimensions();
         this.initialized = true;
+        
+        if(this.appendTo) {
+            if(this.appendTo === 'body')
+                document.body.appendChild(this.container);
+            else
+                this.appendTo.appendChild(this.container);
+        }
     }
     
     get label(): string {
@@ -205,6 +215,10 @@ export class Dropdown implements OnInit,AfterViewInit,AfterViewChecked,DoCheck,O
 
     registerOnTouched(fn: Function): void {
         this.onModelTouched = fn;
+    }
+    
+    setDisabledState(val: boolean): void {
+        this.disabled = val;
     }
                  
     updateDimensions() {
@@ -379,11 +393,21 @@ export class Dropdown implements OnInit,AfterViewInit,AfterViewChecked,DoCheck,O
         
     }
     
+    applyFocus(): void {
+        if(this.editable)
+            this.domHandler.findSingle(this.el.nativeElement, '.ui-dropdown-label.ui-inputtext').focus();
+        else
+            this.domHandler.findSingle(this.el.nativeElement, 'input[readonly]').focus();
+    }
+    
     ngOnDestroy() {
         this.documentClickListener();
         this.initialized = false;
+        
+        if(this.appendTo) {
+            this.el.nativeElement.appendChild(this.container);
+        }
     }
-
 }
 
 @NgModule({

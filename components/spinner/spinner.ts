@@ -1,13 +1,14 @@
-import {NgModule,Component,ElementRef,AfterViewInit,Input,Output,EventEmitter,forwardRef,Provider} from '@angular/core';
+import {NgModule,Component,ElementRef,AfterViewInit,Input,Output,EventEmitter,forwardRef} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {InputTextModule} from '../inputtext/inputtext';
 import {DomHandler} from '../dom/domhandler';
 import {NG_VALUE_ACCESSOR, ControlValueAccessor} from '@angular/forms';
 
-const SPINNER_VALUE_ACCESSOR: Provider = new Provider(NG_VALUE_ACCESSOR, {
-    useExisting: forwardRef(() => Spinner),
-    multi: true
-});
+export const SPINNER_VALUE_ACCESSOR: any = {
+  provide: NG_VALUE_ACCESSOR,
+  useExisting: forwardRef(() => Spinner),
+  multi: true
+};
 
 @Component({
     selector: 'p-spinner',
@@ -104,7 +105,7 @@ export class Spinner implements AfterViewInit,ControlValueAccessor {
         else
             this.value = currentValue + step;
     
-        if(this.max !== undefined && this.value.toString().length > this.maxlength) {
+        if(this.maxlength !== undefined && this.value.toString().length > this.maxlength) {
             this.value = currentValue;
         }
     
@@ -262,6 +263,10 @@ export class Spinner implements AfterViewInit,ControlValueAccessor {
 
     registerOnTouched(fn: Function): void {
         this.onModelTouched = fn;
+    }
+    
+    setDisabledState(val: boolean): void {
+        this.disabled = val;
     }
 }
 

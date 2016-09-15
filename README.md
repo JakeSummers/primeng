@@ -21,6 +21,7 @@ Do these things once:
 
 	npm install typings --global
 	npm install webpack-dev-server --global
+	npm install tsc --global
 
 Do these things to build & start the webapp:
 
@@ -29,6 +30,7 @@ Do these things to build & start the webapp:
 	# Manual Step: 	
 	# Now update the package.json to include dependancies!
 	# The package.json on this branch has been updated.  See that!
+
 
 	echo "npm cache clean"
 	npm cache clean
@@ -44,7 +46,6 @@ Do these things to build & start the webapp:
 
 	echo "npm start"
 	npm start
-
 
 Then you can access it here (with status): 
 

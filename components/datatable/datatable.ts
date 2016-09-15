@@ -1,11 +1,11 @@
-import {NgModule,Component,ElementRef,AfterViewInit,AfterViewChecked,OnInit,OnDestroy,DoCheck,Input,ViewContainerRef,
-        Output,SimpleChange,EventEmitter,ContentChild,ContentChildren,Renderer,IterableDiffers,Query,QueryList,TemplateRef,ChangeDetectorRef} from '@angular/core';
+import {NgModule,Component,ElementRef,AfterContentInit,AfterViewInit,AfterViewChecked,OnInit,OnDestroy,DoCheck,Input,ViewContainerRef,
+        Output,SimpleChange,EventEmitter,ContentChild,ContentChildren,Renderer,IterableDiffers,QueryList,TemplateRef,ChangeDetectorRef} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms'
 import {SharedModule} from '../common/shared';
 import {PaginatorModule} from '../paginator/paginator';
 import {InputTextModule} from '../inputtext/inputtext';
-import {Column,Header,Footer,ColumnTemplateLoader} from '../common/shared';
+import {Column,Header,Footer} from '../common/shared';
 import {LazyLoadEvent,FilterMetadata,SortMeta} from '../common/api';
 import {DomHandler} from '../dom/domhandler';
 import {Subscription} from 'rxjs/Subscription';
@@ -106,7 +106,10 @@ export class RowExpansionLoader {
                                 'ui-sortable-column': col.sortable,'ui-state-active': isSorted(col), 'ui-resizable-column': resizableColumns,'ui-selection-column':col.selectionMode}" 
                                 [draggable]="reorderableColumns" (dragstart)="onColumnDragStart($event)" (dragover)="onColumnDragover($event)" (dragleave)="onColumnDragleave($event)" (drop)="onColumnDrop($event)">
                                 <span class="ui-column-resizer" *ngIf="resizableColumns && ((columnResizeMode == 'fit' && !lastCol) || columnResizeMode == 'expand')" (mousedown)="initColumnResize($event)"></span>
-                                <span class="ui-column-title" *ngIf="!col.selectionMode">{{col.header}}</span>
+                                <span class="ui-column-title" *ngIf="!col.selectionMode&&!col.headerTemplate">{{col.header}}</span>
+                                <span class="ui-column-title" *ngIf="col.headerTemplate">
+                                    <p-columnHeaderTemplateLoader [column]="col"></p-columnHeaderTemplateLoader>
+                                </span>
                                 <span class="ui-sortable-column-icon fa fa-fw fa-sort" *ngIf="col.sortable"
                                      [ngClass]="{'fa-sort-desc': (getSortOrder(col) == -1),'fa-sort-asc': (getSortOrder(col) == 1)}"></span>
                                 <input type="text" pInputText class="ui-column-filter" *ngIf="col.filter" [value]="filters[col.field] ? filters[col.field].value : ''" (click)="onFilterInputClick($event)" (keyup)="onFilterKeyup($event.target.value, col.field, col.filterMatchMode)"/>
@@ -128,7 +131,12 @@ export class RowExpansionLoader {
                     </thead>
                     <tfoot *ngIf="hasFooter()">
                         <tr *ngIf="!footerRows">
-                            <th *ngFor="let col of columns" [ngStyle]="col.style" [class]="col.styleClass" [ngClass]="{'ui-state-default':true}" [style.display]="col.hidden ? 'none' : 'table-cell'">{{col.footer}}</th>
+                            <th *ngFor="let col of columns" [ngStyle]="col.style" [class]="col.styleClass" [ngClass]="{'ui-state-default':true}" [style.display]="col.hidden ? 'none' : 'table-cell'">
+                                <span class="ui-column-footer" *ngIf="!col.footerTemplate">{{col.footer}}</span>
+                                <span class="ui-column-footer" *ngIf="col.footerTemplate">
+                                    <p-columnFooterTemplateLoader [column]="col"></p-columnFooterTemplateLoader>
+                                </span>
+                            </th>
                         </tr>
                         <tr *ngFor="let footerRow of footerRows">
                             <th *ngFor="let col of footerRow.columns" [ngStyle]="col.style" [class]="col.styleClass"
@@ -144,9 +152,9 @@ export class RowExpansionLoader {
                                 <td *ngFor="let col of columns" [ngStyle]="col.style" [class]="col.styleClass" [style.display]="col.hidden ? 'none' : 'table-cell'"
                                     [ngClass]="{'ui-editable-column':col.editable,'ui-selection-column':col.selectionMode}" (click)="switchCellToEditMode($event.target,col,rowData)">
                                     <span class="ui-column-title" *ngIf="responsive">{{col.header}}</span>
-                                    <span class="ui-cell-data" *ngIf="!col.template && !col.expander && !col.selectionMode">{{resolveFieldData(rowData,col.field)}}</span>
-                                    <span class="ui-cell-data" *ngIf="col.template">
-                                        <p-columnTemplateLoader [column]="col" [rowData]="rowData" [rowIndex]="rowIndex + first"></p-columnTemplateLoader>
+                                    <span class="ui-cell-data" *ngIf="!col.bodyTemplate && !col.expander && !col.selectionMode">{{resolveFieldData(rowData,col.field)}}</span>
+                                    <span class="ui-cell-data" *ngIf="col.bodyTemplate">
+                                        <p-columnBodyTemplateLoader [column]="col" [rowData]="rowData" [rowIndex]="rowIndex + first"></p-columnBodyTemplateLoader>
                                     </span>
                                     <input type="text" class="ui-cell-editor ui-state-highlight" *ngIf="col.editable" [(ngModel)]="rowData[col.field]"
                                             (blur)="switchCellToViewMode($event.target,col,rowData,true)" (keydown)="onCellEditorKeydown($event, col, rowData)"/>
@@ -202,9 +210,9 @@ export class RowExpansionLoader {
                             <td *ngFor="let col of columns" [ngStyle]="col.style" [class]="col.styleClass" [style.display]="col.hidden ? 'none' : 'table-cell'"
                                 [ngClass]="{'ui-editable-column':col.editable}" (click)="switchCellToEditMode($event.target,col,rowData)">
                                 <span class="ui-column-title" *ngIf="responsive">{{col.header}}</span>
-                                <span class="ui-cell-data" *ngIf="!col.template">{{resolveFieldData(rowData,col.field)}}</span>
-                                <span class="ui-cell-data" *ngIf="col.template">
-                                    <p-columnTemplateLoader [column]="col" [rowData]="rowData" [rowIndex]="rowIndex + first"></p-columnTemplateLoader>
+                                <span class="ui-cell-data" *ngIf="!col.bodyTemplate">{{resolveFieldData(rowData,col.field)}}</span>
+                                <span class="ui-cell-data" *ngIf="col.bodyTemplate">
+                                    <p-columnBodyTemplateLoader [column]="col" [rowData]="rowData" [rowIndex]="rowIndex + first"></p-columnBodyTemplateLoader>
                                 </span>
                                 <input type="text" class="ui-cell-editor ui-state-highlight" *ngIf="col.editable" [(ngModel)]="rowData[col.field]"
                                         (blur)="switchCellToViewMode($event.target,col,rowData,true)" (keydown)="onCellEditorKeydown($event, col, rowData)"/>
@@ -230,7 +238,7 @@ export class RowExpansionLoader {
     `,
     providers: [DomHandler]
 })
-export class DataTable implements AfterViewChecked,AfterViewInit,OnInit,DoCheck,OnDestroy {
+export class DataTable implements AfterViewChecked,AfterViewInit,AfterContentInit,OnInit,DoCheck,OnDestroy {
 
     @Input() value: any[];
 
@@ -344,6 +352,8 @@ export class DataTable implements AfterViewChecked,AfterViewInit,OnInit,DoCheck,
     
     @ContentChild(TemplateRef) rowExpansionTemplate: TemplateRef<any>;
     
+    @ContentChildren(Column) cols: QueryList<Column>;
+    
     protected dataToRender: any[];
 
     protected first: number = 0;
@@ -407,13 +417,8 @@ export class DataTable implements AfterViewChecked,AfterViewInit,OnInit,DoCheck,
     columnsSubscription: Subscription;
 
     constructor(protected el: ElementRef, protected domHandler: DomHandler, differs: IterableDiffers, 
-        @Query(Column) cols: QueryList<Column>, protected renderer: Renderer, changeDetector: ChangeDetectorRef) {
+            protected renderer: Renderer, private changeDetector: ChangeDetectorRef) {
         this.differ = differs.find([]).create(null);
-        this.columnsSubscription = cols.changes.subscribe(_ => {
-            this.columns = cols.toArray();
-            this.columnsUpdated = true;
-            changeDetector.markForCheck();
-        });
     }
 
     ngOnInit() {
@@ -427,6 +432,15 @@ export class DataTable implements AfterViewChecked,AfterViewInit,OnInit,DoCheck,
                 multiSortMeta: this.multiSortMeta
             });
         }
+    }
+    
+    ngAfterContentInit() {
+        this.initColumns();
+        
+        this.columnsSubscription = this.cols.changes.subscribe(_ => {
+            this.initColumns();
+            this.changeDetector.markForCheck();
+        });
     }
 
     ngAfterViewChecked() {
@@ -477,6 +491,11 @@ export class DataTable implements AfterViewChecked,AfterViewInit,OnInit,DoCheck,
             
             this.updateDataToRender(this.filteredValue||this.value);
         }
+    }
+    
+    initColumns(): void {
+        this.columns = this.cols.toArray();
+        this.columnsUpdated = true;
     }
 
     resolveFieldData(data: any, field: string): any {
@@ -710,20 +729,17 @@ export class DataTable implements AfterViewChecked,AfterViewInit,OnInit,DoCheck,
             || (this.domHandler.hasClass(event.target, 'ui-c'))) {
             return;
         }
-
-        let selectionIndex = this.findIndexInSelection(rowData);
-        let selected = selectionIndex != -1;
-
-        if(selected) {
+        
+        if(this.isSelected(rowData)) {
             if(this.isSingleSelectionMode()) {
                 this.selection = null;
                 this.selectionChange.emit(null);
             }
             else {
-                this.selection.splice(selectionIndex,1);
+                this.selection.splice(this.findIndexInSelection(rowData), 1);
                 this.selectionChange.emit(this.selection);
             }
-
+            
             this.onRowUnselect.emit({originalEvent: event, data: rowData, type: 'row'});
         }
         else {
@@ -813,7 +829,6 @@ export class DataTable implements AfterViewChecked,AfterViewInit,OnInit,DoCheck,
 
     findIndexInSelection(rowData: any) {
         let index: number = -1;
-
         if(this.selection) {
             for(let i = 0; i  < this.selection.length; i++) {
                 if(this.domHandler.equals(rowData, this.selection[i])) {
@@ -1390,7 +1405,7 @@ export class DataTable implements AfterViewChecked,AfterViewInit,OnInit,DoCheck,
 }
 
 @NgModule({
-    imports: [CommonModule,SharedModule,PaginatorModule,FormsModule],
+    imports: [CommonModule,SharedModule,PaginatorModule,FormsModule,InputTextModule],
     exports: [DataTable,SharedModule],
     declarations: [DataTable,DTRadioButton,DTCheckbox,RowExpansionLoader]
 })

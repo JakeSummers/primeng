@@ -1,19 +1,20 @@
-import {NgModule,Component,Input,Output,EventEmitter,forwardRef,Provider} from '@angular/core';
+import {NgModule,Component,Input,Output,EventEmitter,forwardRef} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {SelectItem} from '../common/api';
 import {NG_VALUE_ACCESSOR, ControlValueAccessor} from '@angular/forms';
 
-const SELECTBUTTON_VALUE_ACCESSOR: Provider = new Provider(NG_VALUE_ACCESSOR, {
-    useExisting: forwardRef(() => SelectButton),
-    multi: true
-});
+export const SELECTBUTTON_VALUE_ACCESSOR: any = {
+  provide: NG_VALUE_ACCESSOR,
+  useExisting: forwardRef(() => SelectButton),
+  multi: true
+};
 
 @Component({
     selector: 'p-selectButton',
     template: `
         <div [ngClass]="'ui-selectbutton ui-buttonset ui-widget ui-corner-all ui-buttonset-' + options.length" (mouseleave)="hoveredItem=null" [ngStyle]="style" [class]="styleClass">
             <div *ngFor="let option of options;" class="ui-button ui-widget ui-state-default ui-button-text-only"
-                [ngClass]="{'ui-state-hover': hoveredItem == option,'ui-state-active':isSelected(option)}"
+                [ngClass]="{'ui-state-hover': (hoveredItem==option)&&!disabled,'ui-state-active':isSelected(option), 'ui-state-disabled':disabled}"
                 (mouseenter)="hoveredItem=option" (click)="onItemClick($event,option)">
                 <span class="ui-button-text ui-c">{{option.label}}</span>
             </div>
@@ -32,6 +33,8 @@ export class SelectButton implements ControlValueAccessor {
     @Input() style: any;
         
     @Input() styleClass: string;
+
+    @Input() disabled: boolean;
 
     @Output() onChange: EventEmitter<any> = new EventEmitter();
     
@@ -55,7 +58,15 @@ export class SelectButton implements ControlValueAccessor {
         this.onModelTouched = fn;
     }
     
+    setDisabledState(val: boolean): void {
+        this.disabled = val;
+    }
+    
     onItemClick(event, option: SelectItem) {
+        if(this.disabled) {
+            return;
+        }
+        
         if(this.multiple) {
             let itemIndex = this.findItemIndex(option);
             if(itemIndex != -1)
